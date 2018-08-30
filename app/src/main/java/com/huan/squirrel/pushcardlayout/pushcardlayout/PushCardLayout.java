@@ -4,7 +4,6 @@ package com.huan.squirrel.pushcardlayout.pushcardlayout;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.NestedScrollingChild;
@@ -21,15 +20,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 
-import com.huan.squirrel.pushcardlayout.R;
 
 /**
  * @author:Squirrel桓
@@ -123,12 +119,12 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         creatTopLayout(context);
         creatBottomLayout(context);
         /****** (START)  测试添加 可删除   ***********/
-        ImageView imageView = new ImageView(getContext());
+        /*ImageView imageView = new ImageView(getContext());
         imageView.setImageResource(R.mipmap.ic_launcher_round);
         setTopLayoutView(imageView);
         ImageView imageView2 = new ImageView(getContext());
         imageView2.setImageResource(R.mipmap.ic_launcher_round);
-        setBottomLayoutView(imageView2);
+        setBottomLayoutView(imageView2);*/
         /******  (END) 测试添加 可删除   ***********/
 
         setChildrenDrawingOrderEnabled(true);//设置子view按照顺序绘制
@@ -142,7 +138,8 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
 
     /**
      * 初始化顶部布局
-     *TODO 暂时用底部布局高度作为默认高度，动态顶部，底部高度 ，用到时候在处理吧
+     * TODO 暂时用底部布局高度作为默认高度，动态顶部，底部高度 ，用到时候在处理吧
+     *
      * @param context
      */
     private int bottomLayoutHeight = 280;
@@ -284,7 +281,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        if(!canRefresh){
+        if (!canRefresh) {
             return false;
         }
 
@@ -353,8 +350,11 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         if (contentLayout != null) {
             ViewCompat.offsetTopAndBottom(contentLayout, offset);//正数向下移动，负数向上移动
             //topLayout.bringToFront();
-            ViewCompat.offsetTopAndBottom(topLayout, offset);
-            ViewCompat.offsetTopAndBottom(bottomLayout, offset);
+            if (isUping) {
+                ViewCompat.offsetTopAndBottom(topLayout, offset);
+            } else {
+                ViewCompat.offsetTopAndBottom(bottomLayout, offset);
+            }
             mContenViewOffsetTop = contentLayout.getTop();
         }
 
@@ -410,7 +410,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         int h = !isTop ? (targetY2 - mContenViewOffsetTop) : (-targetY2 - mContenViewOffsetTop);
 
         if (animationListener != null) {
-            animationListener.onRuning(isUping?topLayoutView:bottomLayoutView,isUping,(float) Math.abs(contentLayout.getTop())/bottomLayoutHeight);
+            animationListener.onRuning(isUping ? topLayoutView : bottomLayoutView, isUping, (float) Math.abs(contentLayout.getTop()) / bottomLayoutHeight);
         }
         Log.i("CGQ", "slingshotDist=" + slingshotDist + ",h=" + h);
         scrollTopLayout(h);
@@ -424,18 +424,22 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
     /**
      * 恢复
      */
-    public void setCancel(){
+    public void setCancel() {
         finishSpinner(0);
     }
+
     //是否可以上拉下拉滑动
     private boolean canRefresh = true;
+
     /**
      * 是否可以上拉下拉滑动
+     *
      * @param canRefresh
      */
-    public void setCanRefresh(boolean canRefresh){
+    public void setCanRefresh(boolean canRefresh) {
         this.canRefresh = canRefresh;
     }
+
     /**
      * 恢复动画
      */
@@ -446,24 +450,30 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         //处理是否触发刷新或者加载更多
         if (Math.abs(contentLayout.getTop()) > bottomLayoutHeight / 3 * 2 && (!isUped && !isDowned)) {//拉到2/3以上则触发
             //填充动画（自动下拉到最大高度）
-            ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
-            animator.setDuration(200);
+            float startValue = Math.abs(contentLayout.getTop())/(float)bottomLayoutHeight;
+            ValueAnimator animator = ValueAnimator.ofFloat(startValue, 1);
+
+            animator.setDuration((int)(200*(1-startValue)));
             animator.setInterpolator(mDecelerateInterpolator);
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float scale = (float) animation.getAnimatedValue();
                     ViewCompat.offsetTopAndBottom(contentLayout, (int) (((isUping ? 1 : -1) * bottomLayoutHeight - contentLayout.getTop()) * scale));//正数向下移动，负数向上移动
-                    ViewCompat.offsetTopAndBottom(topLayout, (int) ((isUping ? 1 : -1) * bottomLayoutHeight + (topLayoutOffsetTop - topLayout.getTop()) * scale));
-                    ViewCompat.offsetTopAndBottom(bottomLayout, (int) (-bottomLayoutHeight + (bottomLayoutOffsetTop - bottomLayout.getTop()) * scale));
+                    if (isUping && (topLayout.getTop() != topLayoutOffsetTop )) {
+                        ViewCompat.offsetTopAndBottom(topLayout, (int) ( (bottomLayoutHeight + (topLayoutOffsetTop - topLayout.getTop())) * scale));
+                    }
+                    if (!isUping && (bottomLayout.getTop() != bottomLayoutOffsetTop)) {
+                        ViewCompat.offsetTopAndBottom(bottomLayout, (int) ((-bottomLayoutHeight + (bottomLayoutOffsetTop - bottomLayout.getTop())) * scale));
+                    }
                     mContenViewOffsetTop = contentLayout.getTop();
                     if (scale == 0) {//动画开始
                         if (animationListener != null) {
-                            animationListener.onStart(isUping?topLayoutView:bottomLayoutView);
+                            animationListener.onStart(isUping ? topLayoutView : bottomLayoutView);
                         }
                     } else if (scale == 1) {//动画结束
                         if (animationListener != null) {
-                            animationListener.onEnd(isUping?topLayoutView:bottomLayoutView);
+                            animationListener.onEnd(isUping ? topLayoutView : bottomLayoutView);
                         }
                         if (isUping) {//上拉处理
                             isUping = false;
@@ -481,7 +491,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                         }
                     } else {//动画进行中
                         if (animationListener != null) {
-                            animationListener.onRuning(isUping?topLayoutView:bottomLayoutView,isUping,scale);
+                            animationListener.onRuning(isUping ? topLayoutView : bottomLayoutView, isUping, scale);
                         }
                     }
                 }
@@ -497,12 +507,16 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float scale = (float) animation.getAnimatedValue();
                     ViewCompat.offsetTopAndBottom(contentLayout, (int) (-contentLayout.getTop() * scale));//正数向下移动，负数向上移动
-                    ViewCompat.offsetTopAndBottom(topLayout, (int) ((topLayoutOffsetTop - topLayout.getTop()) * scale));
-                    ViewCompat.offsetTopAndBottom(bottomLayout, (int) ((bottomLayoutOffsetTop - bottomLayout.getTop()) * scale));
+                    if (topLayout.getTop() != topLayoutOffsetTop) {
+                        ViewCompat.offsetTopAndBottom(topLayout, (int) ((topLayoutOffsetTop - topLayout.getTop()) * scale));
+                    }
+                    if (bottomLayout.getTop() != bottomLayoutOffsetTop) {
+                        ViewCompat.offsetTopAndBottom(bottomLayout, (int) ((bottomLayoutOffsetTop - bottomLayout.getTop()) * scale));
+                    }
                     mContenViewOffsetTop = contentLayout.getTop();
                     if (scale == 0) {//动画开始
                         if (animationListener != null) {
-                            animationListener.onStart(isUping?topLayoutView:bottomLayoutView);
+                            animationListener.onStart(isUping ? topLayoutView : bottomLayoutView);
                         }
                     } else if (scale == 1) {//动画结束
                         isUped = false;
@@ -510,11 +524,11 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                         isUping = false;
                         isDowning = false;
                         if (animationListener != null) {
-                            animationListener.onEnd(isUping?topLayoutView:bottomLayoutView);
+                            animationListener.onEnd(isUping ? topLayoutView : bottomLayoutView);
                         }
                     } else {//动画进行中
                         if (animationListener != null) {
-                            animationListener.onRuning(isUping?topLayoutView:bottomLayoutView,isUping,scale);
+                            animationListener.onRuning(isUping ? topLayoutView : bottomLayoutView, isUping, scale);
                         }
                     }
                 }
@@ -657,7 +671,8 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
     }
 
     @Override
-    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed, int[] offsetInWindow) {
+    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed,
+                                           int[] offsetInWindow) {
         return mNestedScrollingChildHelper.dispatchNestedPreScroll(
                 dx, dy, consumed, offsetInWindow);
     }
@@ -694,6 +709,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         }
         return contentLayout.canScrollVertically(-1);
     }
+
     //判断是否可以上拉
     public boolean canChildScrollDown() {
         if (android.os.Build.VERSION.SDK_INT < 14) {
@@ -767,11 +783,12 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
 
         /**
          * 0-1属性动画，下拉百分比动画
-         *@param  targetView 目标view(头部或者底部)
-         * @param isUpper //判断头部动画还是底部动画
-         * @param value 动画百分比
+         *
+         * @param targetView 目标view(头部或者底部)
+         * @param isUpper    //判断头部动画还是底部动画
+         * @param value      动画百分比
          */
-        void onRuning(View targetView, boolean isUpper,float value);
+        void onRuning(View targetView, boolean isUpper, float value);
 
         /**
          * 动画结束
