@@ -10,6 +10,9 @@
 
 ![这里写图片描述](https://github.com/squirrelhuan/PushCardLayout/blob/master/app/src/main/res/drawable/demo.gif?raw=true)
 
+#### 新写的动画
+
+![这里写图片描述](https://github.com/squirrelhuan/PushCardLayout/blob/master/app/src/main/res/drawable/refresh.gif?raw=true)
 
 
 
