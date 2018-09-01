@@ -313,7 +313,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                         } else {
                             Log.i("CGQ", "下滑并触发");
                             handled = true;
-                            final float y = event.getY();
+                            float y = event.getY();
                             startDragging(y);
                             final float overscrollTop = offset_c * DRAG_RATE;
                             //下滑并触发
@@ -329,7 +329,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                         } else {
                             Log.i("CGQ", "上滑并触发");
                             handled = true;
-                            final float y = event.getY();
+                            float y = event.getY();
                             startDragging(y);
                             final float overscrollTop = offset_c * DRAG_RATE;
                             //下拉显示头部
@@ -464,11 +464,11 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float scale = (float) animation.getAnimatedValue();
-                    ViewCompat.offsetTopAndBottom(contentLayout, (int) (((isUping ? 1 : -1) * bottomLayoutHeight - contentLayout.getTop()) * scale));//正数向下移动，负数向上移动
-                    if (isUping && (topLayout.getTop() != topLayoutOffsetTop )) {
+                    if(contentLayout.getTop()>0&& (topLayout.getTop() != topLayoutOffsetTop )){
+                        ViewCompat.offsetTopAndBottom(contentLayout, (int) (( bottomLayoutHeight - contentLayout.getTop()) * scale));//正数向下移动，负数向上移动
                         ViewCompat.offsetTopAndBottom(topLayout, (int) ( (bottomLayoutHeight + (topLayoutOffsetTop - topLayout.getTop())) * scale));
-                    }
-                    if (!isUping && (bottomLayout.getTop() != bottomLayoutOffsetTop)) {
+                    }else if( (topLayout.getTop() != topLayoutOffsetTop )){
+                        ViewCompat.offsetTopAndBottom(contentLayout, (int) ((- bottomLayoutHeight - contentLayout.getTop()) * scale));//正数向下移动，负数向上移动
                         ViewCompat.offsetTopAndBottom(bottomLayout, (int) ((-bottomLayoutHeight + (bottomLayoutOffsetTop - bottomLayout.getTop())) * scale));
                     }
                     mContenViewOffsetTop = contentLayout.getTop();

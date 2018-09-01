@@ -37,8 +37,8 @@ public class Saleng extends View {
     private int center_x, center_y, mwidth, width, height;
     private int pointX = 20;
     private int pointY = 20;
-    private int pointRadius = 25;
-    private int bigRadius = 50;
+    private int pointRadius = (int)(getResources().getDisplayMetrics().density*8);
+    private int bigRadius = (int)(getResources().getDisplayMetrics().density*35);
     private boolean isPlaying = false;
     private int paddingTop =0;
     private int paddingTopAbs =0;
@@ -61,7 +61,7 @@ public class Saleng extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        offet = dp2px(context,bigRadius)/3;
+        offet =bigRadius/3;
         //绘制背景
         drawBackground(canvas);
         if (!isPlaying) {
@@ -73,7 +73,7 @@ public class Saleng extends View {
 
     private void drawBackground(Canvas canvas) {
         paddingTop=(int)(paddingTopAbs*(1-percent));
-        float height = this.height<dp2px(context,80)?dp2px(context,80):this.height;
+        float height = this.height<dp2px(context,120)?dp2px(context,120):this.height;
         //绘制圆
         Paint p = new Paint();
         //p.setColor(0x77000000);
