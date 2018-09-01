@@ -34,6 +34,10 @@
             android:text="CustomerActivity"
             android:textColor="#fff"
             android:layout_margin="2dp"/>
+        <com.huan.squirrel.pushcardlayout.view.Saleng
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
     </LinearLayout>
 
 

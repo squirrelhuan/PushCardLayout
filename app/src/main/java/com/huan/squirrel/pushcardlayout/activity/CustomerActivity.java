@@ -10,6 +10,8 @@ import android.widget.Toast;
 
 import com.huan.squirrel.pushcardlayout.R;
 import com.huan.squirrel.pushcardlayout.pushcardlayout.PushCardLayout;
+import com.huan.squirrel.pushcardlayout.view.Saleng;
+import com.huan.squirrel.pushcardlayout.view.WaterDropView;
 
 public class CustomerActivity extends AppCompatActivity {
 
@@ -25,15 +27,12 @@ public class CustomerActivity extends AppCompatActivity {
         PushCardLayout pcl_layout = findViewById(R.id.pcl_layout);
 
         /*************************   自定义头部和底部布局   ************************************************/
-        TextView textView = new TextView(this);
-        textView.setText("下拉刷新数据");
-        textView.setTextSize(20);
-        textView.setBackgroundColor(Color.RED);
+        Saleng textView = new Saleng(this);
+        textView.setBackgroundColor(Color.BLACK);
+        textView.setPaddingTop(pcl_layout.getBottomLayoutHeight());
 
-        TextView textView2 = new TextView(this);
-        textView2.setText("上拉加载更多数据");
-        textView2.setTextSize(20);
-        textView2.setBackgroundColor(Color.YELLOW);
+        Saleng textView2 = new Saleng(this);
+        textView2.setBackgroundColor(Color.BLACK);
 
         //设置顶部布局view
         pcl_layout.setTopLayoutView(textView);
@@ -66,7 +65,7 @@ public class CustomerActivity extends AppCompatActivity {
             @Override
             public void onRuning(View targetView,boolean isUpper, final float value) {
                 Log.i("A", "Animation onRuning:" + value);
-                ((TextView) targetView).setRotation(value * 360);
+                ((Saleng) targetView).setPercent(value );
                 //isUpper 可判断是头部动画还是底部动画
 
             }
@@ -74,7 +73,7 @@ public class CustomerActivity extends AppCompatActivity {
             @Override
             public void onEnd(View targetView) {
                 Log.i("A", "Animation End ...");
-
+                ((Saleng) targetView). refreshAnimation();
             }
         });
 

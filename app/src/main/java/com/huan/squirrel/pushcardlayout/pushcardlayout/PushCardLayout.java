@@ -106,6 +106,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
     };
 
     private void initView(Context context, AttributeSet attrs) {
+        final DisplayMetrics metrics = getResources().getDisplayMetrics();//分辨率
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();//距离，表示滑动的时候，手的移动要大于这个距离才开始移动控件。
 
         mMediumAnimationDuration = getResources().getInteger(
@@ -114,7 +115,6 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         setWillNotDraw(false);//ViewGroup默认情况下，出于性能考虑，会被设置成WILL_NOT_DROW，这样，ondraw就不会被执行了。
         //调用setWillNotDraw（false），去掉其WILL_NOT_DRAW flag。就可以重写ondraw()
 
-        final DisplayMetrics metrics = getResources().getDisplayMetrics();//分辨率
 
         creatTopLayout(context);
         creatBottomLayout(context);
@@ -142,7 +142,11 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
      *
      * @param context
      */
-    private int bottomLayoutHeight = 280;
+    private int bottomLayoutHeight = (int)(100*getResources().getDisplayMetrics().density);
+
+    public int getBottomLayoutHeight() {
+        return bottomLayoutHeight;
+    }
 
     private void creatBottomLayout(Context context) {
         bottomLayout = new LinearLayout(context);
@@ -150,6 +154,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         layoutParams.gravity = Gravity.CENTER;
         bottomLayout.setLayoutParams(layoutParams);
         bottomLayout.setGravity(Gravity.CENTER);
+        //bottomLayout.setGravity(Gravity.BOTTOM);
         addView(bottomLayout);
     }
 
@@ -158,7 +163,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
      *
      * @param context
      */
-    private int topLayoutHeight = 280;
+    private int topLayoutHeight = (int)(100*getResources().getDisplayMetrics().density);
 
     private void creatTopLayout(Context context) {
         topLayout = new LinearLayout(context);

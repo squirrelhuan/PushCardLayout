@@ -11,18 +11,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="visible">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="#ff0000"
         android:textSize="44dp"
         android:textColor="#fff"
         android:text="1"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/colorAccent"
+        android:background="#00ff00"
         android:textSize="44dp"
         android:textColor="#fff"
         android:text="2"/>
@@ -87,14 +87,14 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/colorPrimary"
+        android:background="#00ff00"
         android:textSize="44dp"
         android:textColor="#fff"
         android:text="11"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:background="@color/colorAccent"
+        android:background="#ff0000"
         android:textSize="44dp"
         android:textColor="#fff"
         android:text="12"/>
