@@ -11,6 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:overScrollMode="never">
-        <include layout="@layout/layout_main"/>
+        <!--<include layout="@layout/layout_main"/>-->
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </android.support.v7.widget.RecyclerView>
+
     </com.huan.squirrel.pushcardlayout.pushcardlayout.PushCardLayout>
 </android.support.constraint.ConstraintLayout>

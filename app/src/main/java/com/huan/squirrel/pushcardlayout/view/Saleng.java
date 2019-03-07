@@ -77,7 +77,7 @@ public class Saleng extends View {
         //绘制圆
         Paint p = new Paint();
         //p.setColor(0x77000000);
-        p.setColor(Color.GREEN);
+        p.setColor(Color.RED);
         p.setAntiAlias(true);
         if(percent!=1){
             animator.cancel();
@@ -200,7 +200,6 @@ public class Saleng extends View {
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-
                 float value = (float) animation.getAnimatedValue();
                 //percent = value;
                 rotationX = value;

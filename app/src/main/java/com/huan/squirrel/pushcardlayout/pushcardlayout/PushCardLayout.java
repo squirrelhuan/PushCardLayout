@@ -12,6 +12,7 @@ import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ListViewCompat;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -33,6 +34,20 @@ import android.widget.ListView;
  */
 public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         NestedScrollingChild {
+
+    private StateType cardState = StateType.idle;
+    public enum StateType{
+        idle,//
+        isToping,//顶部下拉状态
+        isToped,//顶部下拉悬停状态
+        isBottoming,//底部下拉状态
+        isBottomed//底部下拉悬停状态
+    }
+
+    public void setCardState(StateType cardState) {
+        this.cardState = cardState;
+        Log.i("cardState","this.cardState="+cardState);
+    }
 
     private int mTouchSlop;
     private final NestedScrollingParentHelper mNestedScrollingParentHelper;
@@ -97,7 +112,6 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         initView(context, attrs);
     }
 
-
     private int mMediumAnimationDuration;//动画时长
     private final DecelerateInterpolator mDecelerateInterpolator;
     private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
@@ -114,7 +128,6 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
 
         setWillNotDraw(false);//ViewGroup默认情况下，出于性能考虑，会被设置成WILL_NOT_DROW，这样，ondraw就不会被执行了。
         //调用setWillNotDraw（false），去掉其WILL_NOT_DRAW flag。就可以重写ondraw()
-
 
         creatTopLayout(context);
         creatBottomLayout(context);
@@ -231,7 +244,6 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                 MeasureSpec.makeMeasureSpec((int) bottomLayoutHeight, MeasureSpec.EXACTLY));
     }
 
-
     private void ensureTarget() {
         if (contentLayout == null) {
             for (int i = 0; i < getChildCount(); i++) {
@@ -243,7 +255,6 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
             }
         }
     }
-
 
     @Override
     public void requestDisallowInterceptTouchEvent(boolean b) {
@@ -264,9 +275,9 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         if (mReturningToStart && ev.getAction() == MotionEvent.ACTION_DOWN) {
             Log.i("CGQ", "不拦截子view滚动");
             mReturningToStart = false;
-            if (isUped || isDowned) {
+            /*if (isUped || isDowned) {
                 finishSpinner(0);
-            }
+            }*/
         }
         if (isEnabled() && !mReturningToStart && (!canChildScrollUp() || !canChildScrollDown())
                 && !mRefreshing && !mNestedScrollInProgress) {
@@ -276,7 +287,8 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
 
         //Log.i("CGQ", "handled=" + handled);
         //父控件消费，子空间就不执行了。父控件不消费，再交给子空间处理
-        return !handled ? super.onInterceptTouchEvent(ev) : handled;
+        boolean b = !handled ? super.onInterceptTouchEvent(ev) : handled;
+        return b;
     }
 
 
@@ -305,7 +317,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                 }
                 float offset_c = (event.getY() - mDownY);//当前滑动间距
                 if (offset_c > 0) {//下滑手势
-                    if (isDowned) {//已经是下滑到底状态
+                    if (cardState==StateType.isBottomed) {//已经是下滑到底状态
                         finishSpinner(0);
                     } else {//不是下滑到底状态
                         if (canChildScrollUp()) {
@@ -321,7 +333,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                         }
                     }
                 } else {//上拉手势
-                    if (isUped) {//已经是上拉到顶状态
+                    if (cardState==StateType.isToped) {//已经是上拉到顶状态
                         finishSpinner(0);
                     } else {
                         if (canChildScrollDown()) {
@@ -345,6 +357,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                 finishSpinner(0);
                 break;
         }
+        Log.i("CGQ", "handled="+handled);
         return handled;
     }
 
@@ -355,7 +368,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         if (contentLayout != null) {
             ViewCompat.offsetTopAndBottom(contentLayout, offset);//正数向下移动，负数向上移动
             //topLayout.bringToFront();
-            if (isUping) {
+            if (cardState==StateType.isToping) {
                 ViewCompat.offsetTopAndBottom(topLayout, offset);
             } else {
                 ViewCompat.offsetTopAndBottom(bottomLayout, offset);
@@ -393,10 +406,12 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
             isTop = true;
             overscrollTop = -overscrollTop;
             //更改状态
-            isDowning = true;
+            //isDowning = true;
+            setCardState(StateType.isBottoming);
         } else {
             //更改状态
-            isUping = true;
+            setCardState(StateType.isToping);
+            //isUping = true;
         }
         Log.i("CGQ", "moveSpinner = " + overscrollTop);
         float originalDragPercent = overscrollTop / mTotalDragDistance;
@@ -415,17 +430,17 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         int h = !isTop ? (targetY2 - mContenViewOffsetTop) : (-targetY2 - mContenViewOffsetTop);
 
         if (animationListener != null) {
-            animationListener.onRuning(isUping ? topLayoutView : bottomLayoutView, isUping, (float) Math.abs(contentLayout.getTop()) / bottomLayoutHeight);
+            animationListener.onRuning(cardState==StateType.isToping ? topLayoutView : bottomLayoutView, cardState==StateType.isToping, (float) Math.abs(contentLayout.getTop()) / bottomLayoutHeight);
         }
         Log.i("CGQ", "slingshotDist=" + slingshotDist + ",h=" + h);
         scrollTopLayout(h);
     }
 
-    private boolean isUping = false;//正在上拉刷新
+   /* private boolean isUping = false;//正在上拉刷新
     private boolean isDowning = false;//正在下拉
     private boolean isUped = false;//正在上拉到指定位置(默认拉到三分之二就触发加载)
     private boolean isDowned = false;//正在下拉到指定位置(默认拉到三分之二就触发加载)
-
+*/
     /**
      * 恢复
      */
@@ -453,7 +468,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
             return;
         }
         //处理是否触发刷新或者加载更多
-        if (Math.abs(contentLayout.getTop()) > bottomLayoutHeight / 3 * 2 && (!isUped && !isDowned)) {//拉到2/3以上则触发
+        if (Math.abs(contentLayout.getTop()) > bottomLayoutHeight / 3 * 2 && (cardState!=StateType.isToped && cardState!=StateType.isBottomed)) {//拉到2/3以上则触发
             //填充动画（自动下拉到最大高度）
             float startValue = Math.abs(contentLayout.getTop())/(float)bottomLayoutHeight;
             ValueAnimator animator = ValueAnimator.ofFloat(startValue, 1);
@@ -474,29 +489,31 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                     mContenViewOffsetTop = contentLayout.getTop();
                     if (scale == 0) {//动画开始
                         if (animationListener != null) {
-                            animationListener.onStart(isUping ? topLayoutView : bottomLayoutView);
+                            animationListener.onStart(cardState==StateType.isToping ? topLayoutView : bottomLayoutView);
                         }
                     } else if (scale == 1) {//动画结束
                         if (animationListener != null) {
-                            animationListener.onEnd(isUping ? topLayoutView : bottomLayoutView);
+                            animationListener.onEnd(cardState==StateType.isToping ? topLayoutView : bottomLayoutView);
                         }
-                        if (isUping) {//上拉处理
-                            isUping = false;
-                            isUped = true;
+                        if (cardState==StateType.isToping) {//上拉处理
+                            //isUping = false;
+                            //isUped = true;
+                            setCardState(StateType.isToped);
                             if (dataListener != null) {
                                 dataListener.onRefreshData();
                             }
                         }
-                        if (isDowning) {//下拉处理
-                            isDowning = false;
-                            isDowned = true;
+                        if (cardState==StateType.isBottoming) {//下拉处理
+                            //isDowning = false;
+                            //isDowned = true;
+                            setCardState(StateType.isBottomed);
                             if (dataListener != null) {
                                 dataListener.onLoadMoreData();
                             }
                         }
                     } else {//动画进行中
                         if (animationListener != null) {
-                            animationListener.onRuning(isUping ? topLayoutView : bottomLayoutView, isUping, scale);
+                            animationListener.onRuning(cardState==StateType.isToping ? topLayoutView : bottomLayoutView, cardState==StateType.isToping, scale);
                         }
                     }
                 }
@@ -521,19 +538,23 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
                     mContenViewOffsetTop = contentLayout.getTop();
                     if (scale == 0) {//动画开始
                         if (animationListener != null) {
-                            animationListener.onStart(isUping ? topLayoutView : bottomLayoutView);
+                            animationListener.onStart(cardState==StateType.isToping ? topLayoutView : bottomLayoutView);
                         }
-                    } else if (scale == 1) {//动画结束
-                        isUped = false;
+                    } else if (scale >= 0.9f) {//动画结束
+                        mTotalUnconsumed = 0;
+                        //mNestedScrollInProgress = false;
+
+                        /*isUped = false;
                         isDowned = false;
                         isUping = false;
-                        isDowning = false;
+                        isDowning = false;*/
+                        setCardState(StateType.idle);
                         if (animationListener != null) {
-                            animationListener.onEnd(isUping ? topLayoutView : bottomLayoutView);
+                            animationListener.onEnd(cardState==StateType.isToping ? topLayoutView : bottomLayoutView);
                         }
                     } else {//动画进行中
                         if (animationListener != null) {
-                            animationListener.onRuning(isUping ? topLayoutView : bottomLayoutView, isUping, scale);
+                            animationListener.onRuning(cardState==StateType.isToping ? topLayoutView : bottomLayoutView, cardState==StateType.isToping, scale);
                         }
                     }
                 }
@@ -566,7 +587,7 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         // Dispatch up to the nested parent
         startNestedScroll(axes & ViewCompat.SCROLL_AXIS_VERTICAL);
         mTotalUnconsumed = 0;
-        mNestedScrollInProgress = true;
+        //mNestedScrollInProgress = true;
     }
 
     @Override
@@ -712,7 +733,11 @@ public class PushCardLayout extends ViewGroup implements NestedScrollingParent,
         if (contentLayout instanceof ListView) {
             return ListViewCompat.canScrollList((ListView) contentLayout, -1);
         }
-        return contentLayout.canScrollVertically(-1);
+        if(contentLayout instanceof RecyclerView){
+
+        }
+        boolean b = contentLayout.canScrollVertically(-1);
+        return b;
     }
 
     //判断是否可以上拉
